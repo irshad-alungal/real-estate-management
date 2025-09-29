@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broker Dashboard - Real Estate Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="logo">RealEstatePro</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Properties</a></li>
+                    <li><a href="#" id="logoutBtn" class="nav-link">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Broker Dashboard</h1>
+            <button id="addAdminBtn" class="btn-primary">Add New Admin</button>
+        </div>
+        
+        <div class="dashboard-stats" id="statsContainer">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+        
+        <div class="dashboard-section">
+            <h2 class="section-title">Purchase Requests</h2>
+            <div class="table-responsive">
+                <table class="data-table" id="purchaseRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Property</th>
+                            <th>User</th>
+                            <th>Contact</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Purchase requests will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2 class="section-title">Complaints</h2>
+            <div class="table-responsive">
+                <table class="data-table" id="complaintsTable">
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>Property</th>
+                            <th>User</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Complaints will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2 class="section-title">Admins</h2>
+            <div class="table-responsive">
+                <table class="data-table" id="adminsTable">
+                    <thead>
+                        <tr>
+                            <th>Admin ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Login ID</th>
+                            <th>Role</th>
+                            <th>Properties</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Admins will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Admin Modal -->
+    <div id="addAdminModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add New Admin</h2>
+            <form id="addAdminForm">
+                <div class="form-group">
+                    <label for="adminName">Full Name</label>
+                    <input type="text" id="adminName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminLoginId">Login ID</label>
+                    <input type="text" id="adminLoginId" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminRole">Role</label>
+                    <select id="adminRole" class="form-control" required>
+                        <option value="manager">Manager</option>
+                        <option value="superadmin">Super Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Add Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkAuth, logoutUser } from './js/auth.js';
+        import { purchaseRequestsAPI, complaintsAPI, adminsAPI, propertiesAPI } from './js/api.js';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            const currentUser = checkAuth();
+            if (!currentUser || currentUser.type !== 'broker') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Load dashboard data
+            loadDashboardData();
+            
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Add Admin Modal
+            const modal = document.getElementById('addAdminModal');
+            const addAdminBtn = document.getElementById('addAdminBtn');
+            const closeBtn = document.querySelector('.close');
+            
+            addAdminBtn.addEventListener('click', function() {
+                modal.style.display = 'block';
+            });
+            
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Add Admin Form
+            document.getElementById('addAdminForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const adminName = document.getElementById('adminName').value;
+                const adminEmail = document.getElementById('adminEmail').value;
+                const adminLoginId = document.getElementById('adminLoginId').value;
+                const adminPassword = document.getElementById('adminPassword').value;
+                const adminRole = document.getElementById('adminRole').value;
+                
+                try {
+                    await adminsAPI.create(
+                        currentUser.id,
+                        adminName,
+                        adminEmail,
+                        adminLoginId,
+                        adminPassword,
+                        adminRole
+                    );
+                    
+                    // Reload dashboard
+                    loadDashboardData();
+                    
+                    // Close modal and reset form
+                    modal.style.display = 'none';
+                    document.getElementById('addAdminForm').reset();
+                    
+                    alert('Admin added successfully!');
+                } catch (error) {
+                    alert(error.message || 'Error adding admin. Please try again.');
+                }
+            });
+        });
+        
+        async function loadDashboardData() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            try {
+                // Load stats and data in parallel
+                const [propertiesRes, purchaseRequestsRes, complaintsRes, adminsRes] = await Promise.all([
+                    propertiesAPI.getAll(),
+                    purchaseRequestsAPI.getByBroker(currentUser.id),
+                    complaintsAPI.getByBroker(currentUser.id),
+                    adminsAPI.getByBroker(currentUser.id)
+                ]);
+                
+                const allProperties = propertiesRes.data;
+                const purchaseRequests = purchaseRequestsRes.data;
+                const complaints = complaintsRes.data;
+                const admins = adminsRes.data;
+                
+                // Calculate stats
+                const brokerProperties = allProperties.filter(p => 
+                    admins.some(a => a.properties && a.properties.some(ap => ap.propertyId === p.propertyId))
+                );
+                
+                const totalProperties = brokerProperties.length;
+                const availableProperties = brokerProperties.filter(p => p.status === 'available').length;
+                const totalPurchaseRequests = purchaseRequests.length;
+                const pendingPurchaseRequests = purchaseRequests.filter(r => r.status === 'pending').length;
+                const totalComplaints = complaints.length;
+                const openComplaints = complaints.filter(c => c.status === 'open').length;
+                
+                // Display stats
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${totalProperties}</div>
+                        <div class="stat-label">Total Properties</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${availableProperties}</div>
+                        <div class="stat-label">Available Properties</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalPurchaseRequests}</div>
+                        <div class="stat-label">Purchase Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${pendingPurchaseRequests}</div>
+                        <div class="stat-label">Pending Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalComplaints}</div>
+                        <div class="stat-label">Total Complaints</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${openComplaints}</div>
+                        <div class="stat-label">Open Complaints</div>
+                    </div>
+                `;
+                
+                // Display purchase requests
+                const purchaseRequestsTable = document.getElementById('purchaseRequestsTable').querySelector('tbody');
+                purchaseRequestsTable.innerHTML = '';
+                
+                purchaseRequests.forEach(request => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${request.requestId}</td>
+                        <td>${request.propertyTitle}</td>
+                        <td>${request.user.name}</td>
+                        <td>${request.user.email}<br>${request.user.phone}</td>
+                        <td>${request.message}</td>
+                        <td>
+                            <span class="property-status status-${request.status}">${request.status}</span>
+                        </td>
+                        <td>${new Date(request.requestDate).toLocaleDateString()}</td>
+                        <td>
+                            ${request.status === 'pending' ? 
+                                `<button class="btn-success" onclick="updateRequestStatus('${request.requestId}', 'approved')">Approve</button>
+                                 <button class="btn-danger" onclick="updateRequestStatus('${request.requestId}', 'rejected')">Reject</button>` : 
+                                ''}
+                        </td>
+                    `;
+                    purchaseRequestsTable.appendChild(row);
+                });
+                
+                // Display complaints
+                const complaintsTable = document.getElementById('complaintsTable').querySelector('tbody');
+                complaintsTable.innerHTML = '';
+                
+                complaints.forEach(complaint => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${complaint.complaintId}</td>
+                        <td>${complaint.propertyTitle}</td>
+                        <td>${complaint.userName}</td>
+                        <td>${complaint.title}</td>
+                        <td>${complaint.description}</td>
+                        <td>
+                            <span class="property-status status-${complaint.status}">${complaint.status}</span>
+                        </td>
+                        <td>${new Date(complaint.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            ${complaint.status === 'open' ? 
+                                `<button class="btn-success" onclick="updateComplaintStatus('${complaint.complaintId}', 'resolved')">Resolve</button>` : 
+                                ''}
+                        </td>
+                    `;
+                    complaintsTable.appendChild(row);
+                });
+                
+                // Display admins
+                const adminsTable = document.getElementById('adminsTable').querySelector('tbody');
+                adminsTable.innerHTML = '';
+                
+                admins.forEach(admin => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${admin.adminId}</td>
+                        <td>${admin.name}</td>
+                        <td>${admin.email}</td>
+                        <td>${admin.loginId}</td>
+                        <td>${admin.role}</td>
+                        <td>${admin.properties ? admin.properties.length : 0}</td>
+                        <td>${new Date(admin.createdAt).toLocaleDateString()}</td>
+                    `;
+                    adminsTable.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                alert('Error loading dashboard data. Please try again.');
+            }
+        }
+        
+        async function updateRequestStatus(requestId, newStatus) {
+            try {
+                await purchaseRequestsAPI.updateStatus(requestId, newStatus);
+                loadDashboardData();
+            } catch (error) {
+                alert(error.message || 'Error updating request status.');
+            }
+        }
+        
+        async function updateComplaintStatus(complaintId, newStatus) {
+            try {
+                await complaintsAPI.updateStatus(complaintId, newStatus);
+                loadDashboardData();
+            } catch (error) {
+                alert(error.message || 'Error updating complaint status.');
+            }
+        }
+        
+        // Make functions available globally
+        window.updateRequestStatus = updateRequestStatus;
+        window.updateComplaintStatus = updateComplaintStatus;
+    </script>
+
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+</body>
+</html>

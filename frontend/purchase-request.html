@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Request - Real Estate Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="logo">RealEstatePro</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Properties</a></li>
+                    <li><a href="purchase-request.html" class="nav-link active">Request Purchase</a></li>
+                    <li><a href="complaints.html" class="nav-link">File Complaint</a></li>
+                    <li><a href="login.html" class="nav-link">Login</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <h2 class="form-title">Property Purchase Request</h2>
+            
+            <form id="purchaseRequestForm">
+                <div class="form-group">
+                    <label for="propertySelect">Select Property</label>
+                    <select id="propertySelect" class="form-control" required>
+                        <option value="">-- Select a Property --</option>
+                        <!-- Properties will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userName">Full Name</label>
+                    <input type="text" id="userName" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userEmail">Email Address</label>
+                    <input type="email" id="userEmail" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userPhone">Phone Number</label>
+                    <input type="tel" id="userPhone" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userMessage">Message</label>
+                    <textarea id="userMessage" class="form-control" placeholder="Please provide any additional details about your interest in this property..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="width: 100%;">Submit Purchase Request</button>
+            </form>
+            
+            <div id="formMessage" style="margin-top: 1rem; text-align: center;"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { propertiesAPI, purchaseRequestsAPI } from './js/api.js';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Populate property dropdown
+            const propertySelect = document.getElementById('propertySelect');
+            
+            try {
+                const response = await propertiesAPI.getAll();
+                const properties = response.data.filter(p => p.status === 'available');
+                
+                properties.forEach(property => {
+                    const option = document.createElement('option');
+                    option.value = property.propertyId;
+                    option.textContent = `${property.title} - ${property.location}`;
+                    propertySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading properties:', error);
+                document.getElementById('formMessage').innerHTML = 
+                    '<p style="color: var(--danger);">Error loading properties. Please try again.</p>';
+            }
+            
+            // Handle form submission
+            document.getElementById('purchaseRequestForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const propertyId = propertySelect.value;
+                const userName = document.getElementById('userName').value;
+                const userEmail = document.getElementById('userEmail').value;
+                const userPhone = document.getElementById('userPhone').value;
+                const userMessage = document.getElementById('userMessage').value;
+                
+                if (!propertyId) {
+                    document.getElementById('formMessage').innerHTML = 
+                        '<p style="color: var(--danger);">Please select a property.</p>';
+                    return;
+                }
+                
+                try {
+                    await purchaseRequestsAPI.create(
+                        propertyId,
+                        { name: userName, email: userEmail, phone: userPhone },
+                        userMessage
+                    );
+                    
+                    // Show success message
+                    document.getElementById('formMessage').innerHTML = 
+                        '<p style="color: var(--success);">Your purchase request has been submitted successfully!</p>';
+                    
+                    // Reset form
+                    document.getElementById('purchaseRequestForm').reset();
+                } catch (error) {
+                    document.getElementById('formMessage').innerHTML = 
+                        `<p style="color: var(--danger);">${error.message || 'Error submitting request. Please try again.'}</p>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

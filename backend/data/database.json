@@ -1,0 +1,135 @@
+{
+  "brokers": [
+    {
+      "brokerId": "bro_9001",
+      "name": "Global Realty Broker",
+      "email": "broker.global@example.com",
+      "loginId": "global.broker",
+      "password": "$2a$10$zaAW2/Yt6i2y7u7E0It.meHkV6x0vf6lrNGFK00H9SG714wQpQjAi",
+      "createdAt": "2025-09-23T08:00:00Z",
+      "admins": [
+        {
+          "adminId": "adm_1001",
+          "name": "John Admin",
+          "email": "john.admin@example.com",
+          "loginId": "john.admin",
+          "password": "$2a$10$ZKZHpsBzmAfb/9gzaOyssOXn48CWZ8vA2xtzBVWRCmaQkLbytDmZm",
+          "role": "superadmin",
+          "createdAt": "2025-09-23T09:00:00Z",
+          "properties": [
+            {
+              "propertyId": "prop_2001",
+              "title": "Sea View 3BHK Apartment",
+              "type": "apartment",
+              "description": "Luxury apartment with sea view.",
+              "location": "Dubai Marina, UAE",
+              "price": 1500000,
+              "status": "available",
+              "amenities": [
+                "balcony",
+                "gym",
+                "swimming_pool"
+              ],
+              "images": [
+                "prop_2001_img1.jpg",
+                "prop_2001_img2.jpg"
+              ],
+              "listedAt": "2025-09-01T10:00:00Z",
+              "purchaseRequests": [
+                {
+                  "requestId": "req_3001",
+                  "user": {
+                    "userId": "u_4001",
+                    "name": "Alice Johnson",
+                    "email": "alice@example.com",
+                    "phone": "123-456-7890"
+                  },
+                  "message": "Interested in buying, please contact.",
+                  "status": "pending",
+                  "requestDate": "2025-09-05T10:45:00Z"
+                }
+              ],
+              "complaints": [
+                {
+                  "complaintId": "c_5001",
+                  "userId": "u_4001",
+                  "userName": "Alice Johnson",
+                  "userEmail": "alice@example.com",
+                  "userPhone": "123-456-7890",
+                  "title": "Water Leakage",
+                  "description": "Water leakage in bathroom area.",
+                  "status": "open",
+                  "createdAt": "2025-09-12T09:30:00Z"
+                }
+              ]
+            },
+            {
+              "propertyId": "prop_2002",
+              "title": "Downtown Office Space",
+              "type": "commercial",
+              "description": "Office space near metro station.",
+              "location": "Business Bay, Dubai",
+              "price": 850000,
+              "status": "reserved",
+              "amenities": [
+                "parking",
+                "wifi"
+              ],
+              "images": [
+                "prop_2002_img1.jpg"
+              ],
+              "listedAt": "2025-09-10T08:00:00Z",
+              "purchaseRequests": [],
+              "complaints": []
+            }
+          ]
+        },
+        {
+          "adminId": "adm_1002",
+          "name": "Sarah Manager",
+          "email": "sarah.manager@example.com",
+          "loginId": "sarah.manager",
+          "password": "$2a$10$K8mJT06aJtG1jUncAJ6MweHeYUunmsyCw/E3aECPYIzYuz3frX3cm",
+          "role": "manager",
+          "createdAt": "2025-09-23T09:15:00Z",
+          "properties": [
+            {
+              "propertyId": "prop_2101",
+              "title": "Suburban Villa 4BHK",
+              "type": "villa",
+              "description": "Spacious villa with private garden.",
+              "location": "Sharjah, UAE",
+              "price": 2200000,
+              "status": "available",
+              "amenities": [
+                "garden",
+                "private_pool"
+              ],
+              "images": [
+                "prop_2101_img1.jpg"
+              ],
+              "listedAt": "2025-09-15T10:00:00Z",
+              "purchaseRequests": [],
+              "complaints": []
+            },
+            {
+              "propertyId": "prop_7bfc6bbf-7a00-4334-a662-f42b7d46e141",
+              "title": "Test",
+              "type": "villa",
+              "description": "Irshad testing",
+              "location": "kondotty",
+              "price": 5541,
+              "status": "available",
+              "amenities": [
+                "test"
+              ],
+              "listedAt": "2025-09-29T17:11:06.814Z",
+              "purchaseRequests": [],
+              "complaints": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

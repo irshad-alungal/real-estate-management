@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="logo">RealEstatePro</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link active">Properties</a></li>
+                    <li><a href="purchase-request.html" class="nav-link">Request Purchase</a></li>
+                    <li><a href="complaints.html" class="nav-link">File Complaint</a></li>
+                    <li><a href="login.html" class="nav-link">Login</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Find Your Dream Property</h2>
+            <p>Browse through our premium collection of residential and commercial properties</p>
+        </section>
+
+        <section class="filters">
+            <div class="filter-group">
+                <label for="propertyType">Property Type:</label>
+                <select id="propertyType">
+                    <option value="all">All Types</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="villa">Villa</option>
+                    <option value="commercial">Commercial</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="propertyStatus">Status:</label>
+                <select id="propertyStatus">
+                    <option value="all">All Status</option>
+                    <option value="available">Available</option>
+                    <option value="reserved">Reserved</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="searchLocation">Location:</label>
+                <input type="text" id="searchLocation" placeholder="Search location...">
+            </div>
+            <button id="applyFilters" class="btn-primary">Apply Filters</button>
+        </section>
+
+        <section class="properties-grid" id="propertiesContainer">
+            <!-- Properties will be loaded here by JavaScript -->
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 RealEstatePro. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

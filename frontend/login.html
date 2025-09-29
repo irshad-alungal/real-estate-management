@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Real Estate Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="logo">RealEstatePro</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Properties</a></li>
+                    <li><a href="purchase-request.html" class="nav-link">Request Purchase</a></li>
+                    <li><a href="complaints.html" class="nav-link">File Complaint</a></li>
+                    <li><a href="login.html" class="nav-link active">Login</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container login-container">
+        <div class="login-card">
+            <h2 class="form-title">Login to Your Account</h2>
+            
+            <div class="login-tabs">
+                <div class="login-tab active" data-tab="broker">Broker Login</div>
+                <div class="login-tab" data-tab="admin">Admin Login</div>
+            </div>
+            
+            <form id="brokerLoginForm" class="login-form active">
+                <div class="form-group">
+                    <label for="brokerLoginId">Login ID</label>
+                    <input type="text" id="brokerLoginId" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="brokerPassword">Password</label>
+                    <input type="password" id="brokerPassword" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Login as Broker</button>
+            </form>
+            
+            <form id="adminLoginForm" class="login-form">
+                <div class="form-group">
+                    <label for="adminLoginId">Login ID</label>
+                    <input type="text" id="adminLoginId" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Login as Admin</button>
+            </form>
+            
+            <div id="loginMessage" style="margin-top: 1rem; text-align: center;"></div>
+            
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                <h3 style="margin-bottom: 1rem; text-align: center;">Demo Credentials</h3>
+                <div style="font-size: 0.9rem;">
+                    <p><strong>Broker:</strong> global.broker / Broker@123</p>
+                    <p><strong>Admin (Superadmin):</strong> john.admin / John@12345</p>
+                    <p><strong>Admin (Manager):</strong> sarah.manager / Sarah@6789</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { loginUser } from './js/auth.js';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already logged in
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser) {
+                if (currentUser.type === 'broker') {
+                    window.location.href = 'dashboard1.html';
+                } else if (currentUser.type === 'admin') {
+                    window.location.href = 'dashboard2.html';
+                }
+            }
+            
+            // Tab switching
+            const tabs = document.querySelectorAll('.login-tab');
+            const forms = document.querySelectorAll('.login-form');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding form
+                    forms.forEach(form => {
+                        form.classList.remove('active');
+                        if (form.id === `${tabName}LoginForm`) {
+                            form.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Broker login form
+            document.getElementById('brokerLoginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const loginId = document.getElementById('brokerLoginId').value;
+                const password = document.getElementById('brokerPassword').value;
+                
+                try {
+                    await loginUser(loginId, password, 'broker');
+                    window.location.href = 'dashboard1.html';
+                } catch (error) {
+                    document.getElementById('loginMessage').innerHTML = 
+                        `<p style="color: var(--danger);">${error.message || 'Invalid login credentials for broker.'}</p>`;
+                }
+            });
+            
+            // Admin login form
+            document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const loginId = document.getElementById('adminLoginId').value;
+                const password = document.getElementById('adminPassword').value;
+                
+                try {
+                    await loginUser(loginId, password, 'admin');
+                    window.location.href = 'dashboard2.html';
+                } catch (error) {
+                    document.getElementById('loginMessage').innerHTML = 
+                        `<p style="color: var(--danger);">${error.message || 'Invalid login credentials for admin.'}</p>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

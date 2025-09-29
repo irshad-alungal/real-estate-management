@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Real Estate Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="logo">RealEstatePro</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Properties</a></li>
+                    <li><a href="#" id="logoutBtn" class="nav-link">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Admin Dashboard</h1>
+            <button id="addPropertyBtn" class="btn-primary">Add New Property</button>
+        </div>
+        
+        <div class="dashboard-stats" id="statsContainer">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+        
+        <div class="dashboard-section">
+            <h2 class="section-title">My Properties</h2>
+            <div class="properties-grid" id="propertiesContainer">
+                <!-- Properties will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2 class="section-title">Purchase Requests</h2>
+            <div class="table-responsive">
+                <table class="data-table" id="purchaseRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Property</th>
+                            <th>User</th>
+                            <th>Contact</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Purchase requests will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="dashboard-section">
+            <h2 class="section-title">Complaints</h2>
+            <div class="table-responsive">
+                <table class="data-table" id="complaintsTable">
+                    <thead>
+                        <tr>
+                            <th>Complaint ID</th>
+                            <th>Property</th>
+                            <th>User</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Complaints will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Property Modal -->
+    <div id="addPropertyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add New Property</h2>
+            <form id="addPropertyForm">
+                <div class="form-group">
+                    <label for="propertyTitle">Property Title</label>
+                    <input type="text" id="propertyTitle" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="propertyType">Property Type</label>
+                    <select id="propertyType" class="form-control" required>
+                        <option value="apartment">Apartment</option>
+                        <option value="villa">Villa</option>
+                        <option value="commercial">Commercial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="propertyDescription">Description</label>
+                    <textarea id="propertyDescription" class="form-control" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="propertyLocation">Location</label>
+                    <input type="text" id="propertyLocation" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="propertyPrice">Price ($)</label>
+                    <input type="number" id="propertyPrice" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="propertyStatus">Status</label>
+                    <select id="propertyStatus" class="form-control" required>
+                        <option value="available">Available</option>
+                        <option value="reserved">Reserved</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="propertyAmenities">Amenities (comma separated)</label>
+                    <input type="text" id="propertyAmenities" class="form-control" placeholder="e.g., balcony, gym, pool">
+                </div>
+                <button type="submit" class="btn-primary">Add Property</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { checkAuth, logoutUser } from './js/auth.js';
+        import { propertiesAPI, purchaseRequestsAPI, complaintsAPI } from './js/api.js';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            const currentUser = checkAuth();
+            if (!currentUser || currentUser.type !== 'admin') {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Load dashboard data
+            loadDashboardData();
+            
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                logoutUser();
+            });
+            
+            // Add Property Modal
+            const modal = document.getElementById('addPropertyModal');
+            const addPropertyBtn = document.getElementById('addPropertyBtn');
+            const closeBtn = document.querySelector('.close');
+            
+            addPropertyBtn.addEventListener('click', function() {
+                modal.style.display = 'block';
+            });
+            
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Add Property Form
+            document.getElementById('addPropertyForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const propertyTitle = document.getElementById('propertyTitle').value;
+                const propertyType = document.getElementById('propertyType').value;
+                const propertyDescription = document.getElementById('propertyDescription').value;
+                const propertyLocation = document.getElementById('propertyLocation').value;
+                const propertyPrice = parseInt(document.getElementById('propertyPrice').value);
+                const propertyStatus = document.getElementById('propertyStatus').value;
+                const propertyAmenities = document.getElementById('propertyAmenities').value
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(item => item !== '');
+                
+                const propertyData = {
+                    title: propertyTitle,
+                    type: propertyType,
+                    description: propertyDescription,
+                    location: propertyLocation,
+                    price: propertyPrice,
+                    status: propertyStatus,
+                    amenities: propertyAmenities
+                };
+                
+                try {
+                    await propertiesAPI.create(currentUser.id, propertyData);
+                    
+                    // Reload dashboard
+                    loadDashboardData();
+                    
+                    // Close modal and reset form
+                    modal.style.display = 'none';
+                    document.getElementById('addPropertyForm').reset();
+                    
+                    alert('Property added successfully!');
+                } catch (error) {
+                    alert(error.message || 'Error adding property. Please try again.');
+                }
+            });
+        });
+        
+        async function loadDashboardData() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            try {
+                // Load data in parallel
+                const [propertiesRes, purchaseRequestsRes, complaintsRes] = await Promise.all([
+                    propertiesAPI.getByAdmin(currentUser.id),
+                    purchaseRequestsAPI.getByAdmin(currentUser.id),
+                    complaintsAPI.getByAdmin(currentUser.id)
+                ]);
+                
+                const properties = propertiesRes.data;
+                const purchaseRequests = purchaseRequestsRes.data;
+                const complaints = complaintsRes.data;
+                
+                // Calculate stats
+                const totalProperties = properties.length;
+                const availableProperties = properties.filter(p => p.status === 'available').length;
+                const totalPurchaseRequests = purchaseRequests.length;
+                const pendingPurchaseRequests = purchaseRequests.filter(r => r.status === 'pending').length;
+                const totalComplaints = complaints.length;
+                const openComplaints = complaints.filter(c => c.status === 'open').length;
+                
+                // Display stats
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${totalProperties}</div>
+                        <div class="stat-label">My Properties</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${availableProperties}</div>
+                        <div class="stat-label">Available Properties</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalPurchaseRequests}</div>
+                        <div class="stat-label">Purchase Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${pendingPurchaseRequests}</div>
+                        <div class="stat-label">Pending Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalComplaints}</div>
+                        <div class="stat-label">Total Complaints</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${openComplaints}</div>
+                        <div class="stat-label">Open Complaints</div>
+                    </div>
+                `;
+                
+                // Display properties
+                const propertiesContainer = document.getElementById('propertiesContainer');
+                propertiesContainer.innerHTML = '';
+                
+                properties.forEach(property => {
+                    const card = document.createElement('div');
+                    card.className = 'property-card';
+                    card.innerHTML = `
+                        <div class="property-image" style="background-image: url('https://via.placeholder.com/400x200?text=${property.title.replace(/\s+/g, '+')}')"></div>
+                        <div class="property-content">
+                            <h3 class="property-title">${property.title}</h3>
+                            <span class="property-type">${property.type}</span>
+                            <p class="property-description">${property.description}</p>
+                            <div class="property-location">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="#777"/>
+                                </svg>
+                                ${property.location}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                                <span class="property-status status-${property.status}">${property.status}</span>
+                                <span style="font-weight: 600;">$${property.price.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                    propertiesContainer.appendChild(card);
+                });
+                
+                // Display purchase requests
+                const purchaseRequestsTable = document.getElementById('purchaseRequestsTable').querySelector('tbody');
+                purchaseRequestsTable.innerHTML = '';
+                
+                purchaseRequests.forEach(request => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${request.requestId}</td>
+                        <td>${request.propertyTitle}</td>
+                        <td>${request.user.name}</td>
+                        <td>${request.user.email}<br>${request.user.phone}</td>
+                        <td>${request.message}</td>
+                        <td>
+                            <span class="property-status status-${request.status}">${request.status}</span>
+                        </td>
+                        <td>${new Date(request.requestDate).toLocaleDateString()}</td>
+                        <td>
+                            ${request.status === 'pending' ? 
+                                `<button class="btn-success" onclick="updateRequestStatus('${request.requestId}', 'approved')">Approve</button>
+                                 <button class="btn-danger" onclick="updateRequestStatus('${request.requestId}', 'rejected')">Reject</button>` : 
+                                ''}
+                        </td>
+                    `;
+                    purchaseRequestsTable.appendChild(row);
+                });
+                
+                // Display complaints
+                const complaintsTable = document.getElementById('complaintsTable').querySelector('tbody');
+                complaintsTable.innerHTML = '';
+                
+                complaints.forEach(complaint => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${complaint.complaintId}</td>
+                        <td>${complaint.propertyTitle}</td>
+                        <td>${complaint.userName}</td>
+                        <td>${complaint.title}</td>
+                        <td>${complaint.description}</td>
+                        <td>
+                            <span class="property-status status-${complaint.status}">${complaint.status}</span>
+                        </td>
+                        <td>${new Date(complaint.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            ${complaint.status === 'open' ? 
+                                `<button class="btn-success" onclick="updateComplaintStatus('${complaint.complaintId}', 'resolved')">Resolve</button>` : 
+                                ''}
+                        </td>
+                    `;
+                    complaintsTable.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                alert('Error loading dashboard data. Please try again.');
+            }
+        }
+        
+        async function updateRequestStatus(requestId, newStatus) {
+            try {
+                await purchaseRequestsAPI.updateStatus(requestId, newStatus);
+                loadDashboardData();
+            } catch (error) {
+                alert(error.message || 'Error updating request status.');
+            }
+        }
+        
+        async function updateComplaintStatus(complaintId, newStatus) {
+            try {
+                await complaintsAPI.updateStatus(complaintId, newStatus);
+                loadDashboardData();
+            } catch (error) {
+                alert(error.message || 'Error updating complaint status.');
+            }
+        }
+        
+        // Make functions available globally
+        window.updateRequestStatus = updateRequestStatus;
+        window.updateComplaintStatus = updateComplaintStatus;
+    </script>
+
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+</body>
+</html>
